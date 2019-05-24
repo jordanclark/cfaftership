@@ -1,0 +1,181 @@
+component {
+	cfprocessingdirective( preserveCase=true );
+
+	function init(required string apiKey, required string apiUrl= "https://api.aftership.com/v4") {
+		this.apiKey = arguments.apiKey;
+		this.apiUrl = arguments.apiUrl;
+		this.httpTimeOut = 120;
+		return this;
+	}
+
+	function debugTrace( required input ) {
+		if ( structKeyExists( request, "trace" ) && isCustomFunction( request.trace ) ) {
+			if ( isSimpleValue( arguments.input ) ) {
+				request.trace( "aftership: " & arguments.input );
+			} else {
+				request.trace( "aftership: (complex type)" );
+				request.trace( arguments.input );
+			}
+		} else {
+			cftrace( text=( isSimpleValue( arguments.input ) ? arguments.input : "" ), var=arguments.input, category="aftership", type="information" );
+		}
+		return;
+	}
+
+	function getTracking( required string tracking_number, required string slug ) {
+		return this.apiRequest( "GET /trackings/#arguments.slug#/#arguments.tracking_number#" );
+	}
+
+	function deleteTracking( required string tracking_number, required string slug ) {
+		return this.apiRequest( "DELETE /trackings/#arguments.slug#/#arguments.tracking_number#" );
+	}
+
+	function deleteTrackingID( required string id ) {
+		return this.apiRequest( "DELETE /trackings/#arguments.id#" );
+	}
+
+	function createTracking(
+		required string tracking_number
+	,	required string slug
+	,	string title= ""
+	,	string emails= ""
+	,	string smses= ""
+	,	string order_id= ""
+	,	string order_id_path= ""
+	,	string customer_name= ""
+	,	struct custom_fields= {}
+	) {
+		var json = {
+			"tracking" = {
+			"tracking_number" = arguments.tracking_number
+		,	"slug" = arguments.slug
+		,	"title" = arguments.title
+		,	"emails" = listToArray( arguments.emails )
+		,	"smses" = listToArray( arguments.smses )
+		,	"order_id" = arguments.order_id
+		,	"order_id_path" = arguments.order_id_path
+		,	"customer_name" = arguments.customer_name
+		,	"custom_fields" = arguments.custom_fields
+		} };
+		return this.apiRequest( "POST /trackings", json );
+	}
+
+	function updateTracking(
+		required string tracking_number
+	,	required string slug
+	,	string title= ""
+	,	string emails= ""
+	,	string sms= ""
+	,	string order_id= ""
+	,	string order_id_path= ""
+	,	string customer_name= ""
+	,	string custom_fields= ""
+	) {
+		var json = {
+			"tracking" = {
+			"title" = arguments.title
+		,	"emails" = listToArray( arguments.emails )
+		,	"smses" = listToArray( arguments.smses )
+		,	"order_id" = arguments.order_id
+		,	"order_id_path" = arguments.order_id_path
+		,	"customer_name" = arguments.customer_name
+		,	"custom_fields" = arguments.custom_fields
+		} };
+		return this.apiRequest( "PUT /trackings/#arguments.slug#/#arguments.tracking_number#", json );
+	}
+
+	struct function apiRequest(required string api, json= "") {
+		var response = {};
+		var dataKeys = 0;
+		var item = "";
+		var out = {
+			success = false
+		,	error = ""
+		,	status = ""
+		,	json = ""
+		,	statusCode = 0
+		,	response = ""
+		,	verb = listFirst( arguments.api, " " )
+		,	requestUrl = this.apiUrl & listRest( arguments.api, " " )
+		};
+		if ( isStruct( arguments.json ) ) {
+			out.json = serializeJSON( arguments.json );
+			out.json = reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
+		} else if ( isSimpleValue( arguments.json ) && len( arguments.json ) ) {
+			out.json = arguments.json;
+		}
+		if ( request.debug && request.dump ) {
+			this.debugTrace( out );
+		}
+		cftimer( type="debug", label="aftership request" ) {
+			cfhttp( charset="UTF-8", throwOnError=false, url=out.requestUrl, timeOut=this.httpTimeOut, result="response", method=out.verb ) {
+				cfhttpparam( name="aftership-api-key", type="header", value=this.apiKey );
+				if ( out.verb == "POST" || out.verb == "PUT" ) {
+					cfhttpparam( name="Content-Type", type="header", value="application/json" );
+					cfhttpparam( type="body", value=out.json );
+				}
+			}
+		}
+		//  <cfset this.debugTrace( response )> 
+		out.response = toString( response.fileContent );
+		if ( request.debug && request.dump ) {
+			this.debugTrace( out.response );
+		}
+		//  RESPONSE CODE ERRORS 
+		if ( !structKeyExists( response, "responseHeader" ) || !structKeyExists( response.responseHeader, "Status_Code" ) || response.responseHeader.Status_Code == "" ) {
+			out.statusCode = 500;
+		} else {
+			out.statusCode = response.responseHeader.Status_Code;
+		}
+		this.debugTrace( out.statusCode );
+		if ( left( out.statusCode, 1 ) == 4 || left( out.statusCode, 1 ) == 5 ) {
+			out.success = false;
+			out.error = "status code error: #out.statusCode#";
+		} else if ( out.response == "Connection Timeout" || out.response == "Connection Failure" ) {
+			out.error = out.response;
+		} else if ( listFind( "200,201", response.responseHeader.Status_Code ) ) {
+			out.success = true;
+		}
+		//  parse response 
+		if ( len( out.response ) ) {
+			try {
+				out.response = deserializeJSON( out.response );
+				if ( isStruct( out.response ) && structKeyExists( out.response, "meta" ) && structKeyExists( out.response.meta, "message" ) ) {
+					out.success = false;
+					out.error = out.response.meta.message;
+				}
+			} catch (any cfcatch) {
+				out.error = "JSON Error: " & cfcatch.message;
+			}
+		}
+		if ( len( out.error ) ) {
+			out.success = false;
+		}
+		return out;
+	}
+
+	string function structToQueryString( required struct stInput, boolean bEncode= true, string lExclude= "", string sDelims= "," ) {
+		var sOutput = "";
+		var sItem = "";
+		var sValue = "";
+		var amp = "?";
+		for ( sItem in stInput ) {
+			if ( !len( lExclude ) || !listFindNoCase( lExclude, sItem, sDelims ) ) {
+				try {
+					sValue = stInput[ sItem ];
+					if ( len( sValue ) ) {
+						if ( bEncode ) {
+							sOutput &= amp & lCase( sItem ) & "=" & urlEncodedFormat( sValue );
+						} else {
+							sOutput &= amp & lCase( sItem ) & "=" & sValue;
+						}
+						amp = "&";
+					}
+				} catch (any cfcatch) {
+				}
+			}
+		}
+		return sOutput;
+	}
+
+}
