@@ -1,14 +1,15 @@
 component {
 	cfprocessingdirective( preserveCase=true );
 
-	function init(required string apiKey, required string apiUrl= "https://api.aftership.com/v4") {
+	function init(required string apiKey, required string apiUrl= "https://api.aftership.com/v4", numeric timeout= 120, boolean debug= false ) {
 		this.apiKey = arguments.apiKey;
 		this.apiUrl = arguments.apiUrl;
-		this.httpTimeOut = 120;
+		this.httpTimeOut = arguments.timeout;
+		this.debug= arguments.debug;
 		return this;
 	}
 
-	function debugTrace( required input ) {
+	function debugLog( required input ) {
 		if ( structKeyExists( request, "trace" ) && isCustomFunction( request.trace ) ) {
 			if ( isSimpleValue( arguments.input ) ) {
 				request.trace( "aftership: " & arguments.input );
@@ -104,8 +105,8 @@ component {
 		} else if ( isSimpleValue( arguments.json ) && len( arguments.json ) ) {
 			out.json = arguments.json;
 		}
-		if ( request.debug && request.dump ) {
-			this.debugTrace( out );
+		if ( this.debug ) {
+			this.debugLog( out );
 		}
 		cftimer( type="debug", label="aftership request" ) {
 			cfhttp( charset="UTF-8", throwOnError=false, url=out.requestUrl, timeOut=this.httpTimeOut, result="response", method=out.verb ) {
@@ -116,10 +117,9 @@ component {
 				}
 			}
 		}
-		//  <cfset this.debugTrace( response )> 
 		out.response = toString( response.fileContent );
-		if ( request.debug && request.dump ) {
-			this.debugTrace( out.response );
+		if ( this.debug ) {
+			this.debugLog( out.response );
 		}
 		//  RESPONSE CODE ERRORS 
 		if ( !structKeyExists( response, "responseHeader" ) || !structKeyExists( response.responseHeader, "Status_Code" ) || response.responseHeader.Status_Code == "" ) {
@@ -127,7 +127,7 @@ component {
 		} else {
 			out.statusCode = response.responseHeader.Status_Code;
 		}
-		this.debugTrace( out.statusCode );
+		this.debugLog( out.statusCode );
 		if ( left( out.statusCode, 1 ) == 4 || left( out.statusCode, 1 ) == 5 ) {
 			out.success = false;
 			out.error = "status code error: #out.statusCode#";
@@ -152,30 +152,6 @@ component {
 			out.success = false;
 		}
 		return out;
-	}
-
-	string function structToQueryString( required struct stInput, boolean bEncode= true, string lExclude= "", string sDelims= "," ) {
-		var sOutput = "";
-		var sItem = "";
-		var sValue = "";
-		var amp = "?";
-		for ( sItem in stInput ) {
-			if ( !len( lExclude ) || !listFindNoCase( lExclude, sItem, sDelims ) ) {
-				try {
-					sValue = stInput[ sItem ];
-					if ( len( sValue ) ) {
-						if ( bEncode ) {
-							sOutput &= amp & lCase( sItem ) & "=" & urlEncodedFormat( sValue );
-						} else {
-							sOutput &= amp & lCase( sItem ) & "=" & sValue;
-						}
-						amp = "&";
-					}
-				} catch (any cfcatch) {
-				}
-			}
-		}
-		return sOutput;
 	}
 
 }
