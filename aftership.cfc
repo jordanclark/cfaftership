@@ -7,18 +7,21 @@ component {
 		this.httpTimeOut= arguments.timeout;
 		this.debug= arguments.debug;
 		this.userAgent= "aftership-cfml-api-client/1.0";
+		if ( structKeyExists( request, "debug" ) && request.debug == true ) {
+			this.debug = request.debug;
+		}
 		return this;
 	}
 
 	function debugLog( required input ) {
-		if ( structKeyExists( request, "trace" ) && isCustomFunction( request.trace ) ) {
+		if ( structKeyExists( request, "log" ) && isCustomFunction( request.log ) ) {
 			if ( isSimpleValue( arguments.input ) ) {
-				request.trace( "aftership: " & arguments.input );
+				request.log( "aftership: " & arguments.input );
 			} else {
-				request.trace( "aftership: (complex type)" );
-				request.trace( arguments.input );
+				request.log( "aftership: (complex type)" );
+				request.log( arguments.input );
 			}
-		} else {
+		} else if ( this.debug ) {
 			cftrace( text=( isSimpleValue( arguments.input ) ? arguments.input : "" ), var=arguments.input, category="aftership", type="information" );
 		}
 		return;
@@ -87,7 +90,7 @@ component {
 	}
 
 	struct function apiRequest(required string api, json= "") {
-		var response= {};
+		var http= 0;
 		var dataKeys= 0;
 		var item= "";
 		var out= {
