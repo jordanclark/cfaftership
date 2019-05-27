@@ -1,0 +1,21 @@
+{
+	"name":"CFAfterShip",
+    "slug":"cfaftership",
+	"version":"0.5.0",
+    "author":"Jordan Clark <jordanclark@gmail.com>",
+    "keywords":["aftership","package tracking","ups","fedex","usps","api","rest"],
+    "shortDescription":"API client for aftership.com",
+	"description":"Aftership.com is a pretty cool service that makes it easy to consumers or retailers to track packages from any carrier and get real time updates.",
+    "type":"modules",
+    "location":"https://github.com/jordanclark/cfaftership/archive/master.zip",
+    "repository":{"URL":"https://github.com/jordanclark/cfaftership.git","type":"GIT"},
+	"homepage":"https://github.com/jordanclark/cfaftership",
+	"bugs":"https://github.com/jordanclark/cfaftership/issues",
+    "license":[{"type":"Apache-2.0","URL":"https://github.com/jordanclark/cfaftership/blob/master/LICENSE"}],
+    "private":false,
+    "ignore":[
+        "**/.*",
+        "/test/",
+        "/tests/"
+    ],
+}
