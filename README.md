@@ -9,6 +9,10 @@
 # cfaftership
 Aftership.com ColdFusion Rest API Client
 
+# To Install
+Run the following from commandbox:
+	box install cfaftership
+
 # Changes
 2019-05-28 Client now has full API coverage of every aftership method
 
