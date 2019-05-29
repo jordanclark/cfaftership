@@ -5,17 +5,14 @@ component {
 		required string apiKey
 	,	string apiUrl= "https://api.aftership.com/v4"
 	,	string userAgent= "aftership-cfml-api-client/1.0"
-	,	numeric timeout= 120
-	,	boolean debug= false
+	,	numeric httpTimeOut= 120
+	,	boolean debug= ( request.debug ?: false )
 	) {
 		this.apiKey= arguments.apiKey;
 		this.apiUrl= arguments.apiUrl;
 		this.userAgent= arguments.userAgent;
-		this.httpTimeOut= arguments.timeout;
+		this.httpTimeOut= arguments.httpTimeOut;
 		this.debug= arguments.debug;
-		if ( structKeyExists( request, "debug" ) && request.debug == true ) {
-			this.debug = request.debug;
-		}
 		this.offSet = getTimeZoneInfo().utcTotalOffset;
 		return this;
 	}
