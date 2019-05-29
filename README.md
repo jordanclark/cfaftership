@@ -6,7 +6,6 @@
   \___||_|   \__,_||_|   \__|\___||_|   |___/|_| |_||_|| .__/ 
                                                        |_|    
 ```
-
 # cfaftership
 Aftership.com ColdFusion Rest API Client
 
