@@ -1,7 +1,7 @@
 {
     "name":"cfaftership",
     "slug":"cfaftership",
-    "version":"0.9.0",
+    "version":"0.9.1",
     "author":"Jordan Clark <jordanclark@gmail.com>",
     "keywords":[
         "aftership",
@@ -15,7 +15,7 @@
     "shortDescription":"API client for aftership.com",
     "description":"Aftership.com is a pretty cool service that makes it easy to consumers or retailers to track packages from any carrier and get real time updates.",
     "type":"modules",
-    "location":"jordanclark/cfaftership#v0.9.0",
+    "location":"jordanclark/cfaftership#v0.9.1",
     "repository":{
         "URL":"https://github.com/jordanclark/cfaftership.git",
         "type":"GIT"
