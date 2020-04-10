@@ -1,13 +1,14 @@
 component {
-	cfprocessingdirective( preserveCase=true );
+	// cfprocessingdirective( preserveCase=true );
 
 	function init(
 		required string apiKey
 	,	string apiUrl= "https://api.aftership.com/v4"
 	,	string userAgent= "aftership-cfml-api-client/1.0"
 	,	numeric httpTimeOut= 120
-	,	boolean debug= ( request.debug ?: false )
+	,	boolean debug
 	) {
+		arguments.debug = ( arguments.debug ?: request.debug ?: false );
 		this.apiKey= arguments.apiKey;
 		this.apiUrl= arguments.apiUrl;
 		this.userAgent= arguments.userAgent;

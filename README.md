@@ -14,7 +14,8 @@ Run the following from commandbox:
 `box install cfaftership`
 
 ## Changes
-2019-05-28 Client now has full API coverage of every aftership method
+⋅ 2020-04-10 Added support for Adobe ColdFusion 2018, ColdFusion 2016 & ColdFusion 11, thanks CommandBox!
+⋅ 2019-05-28 Client now has full API coverage of every aftership method
 
 ## API documentation
 https://docs.aftership.com/api/4/overview
